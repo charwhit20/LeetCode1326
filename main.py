@@ -1,26 +1,25 @@
 class Solution:
     def minTaps(self, n: int, ranges: list[int]) -> int:
-        # since you are sorting by furthest left anyways, why not just convert ranges to actual ranges, then sort it
-        # by the left index, iterate from the left when finding valid taps, break upon first encounter
-        #ranges.sort(key=lambda x: x[1], reverse=True)
-        taps = []
+        # Create array for max length a tap can reach, intialize at 0
+        # Each index of tapReach will indicate the further position reachable from that position
+        tapReach = [0] * (n + 1)
         for x, y in enumerate(ranges):
-            # instead of break, continue, since it is not sorted
-            if y == 0:
-                continue
-            taps.append([x - y, x + y])
-        #msort from left index
-        taps.sort(key=lambda x: x[0])
+            # These 2 lines remove values out of garden bounds
+            left = max(0, x-y)
+            right = min(n, x+y)
+            # Updates furthest reach for the position at the left index -> [0,1] -> [0,2], [2,3] - > [2,5], etc
+            tapReach[left] = max(tapReach[left], right)
+
         totalTaps = 0
-        while n > 0:
-            prevN = n
-            for x in range(len(taps)):
-                if taps[x][1] >= n:
-                    n = taps[x][0]
-                    totalTaps += 1
-                    break
-            # if no tap found, break look
-            if prevN == n:
-                break
-        if n <= 0: return totalTaps
-        return -1
+        curIndex = 0
+        nextIndex = 0
+        for i in range(n + 1):
+            # if current index has exceeded the furthest possible reach, then the garden is unwaterable
+            if i > nextIndex:
+                return -1
+            # else if the current index has exceed the current reach, then jump to the next highest point
+            if i > curIndex:
+                totalTaps += 1
+                curIndex = nextIndex
+                nextIndex = max(nextIndex, tapReach[i])
+        return totalTaps
